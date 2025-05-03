@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--linking google fonts for icons-->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        /* Importing Google Fonts Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
+
+        * {
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(#EEEEFF, #C8C7FF);
+        /* border: 3px solid red; */
+        }
+
+        #chatbot-toggler {
+            position: fixed;
+            bottom: 30px;
+            right: 160px;
+            border: none;
+            height: 50px;
+            width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            background: #5350C4;
+        }
+
+        #chatbot-toggler span {
+            color: #fff;
+            position: absolute;
+        }
+
+        #chatbot-toggler span:last-child {
+            opacity: 0;
+        }
+
+        /* Conteneur principal du chatbot */
+        .chatbot-popup {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            width: 420px;
+            background: #fff;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.1),
+                0 32px 64px -48px rgba(0, 0, 0, 0.5);
+            height: 550px;
+            /* Ajustement dynamique */
+            opacity: 0;
+            transform: scale(0.2);
+            transform-origin: bottom right;
+            pointer-events: none;
+            transition: all 0.1s ease;
+        }
+
+        body.show-chatbot .chatbot-popup {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+
+        }
+
+        /* En-tête du chat */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            background: #5350C4;
+            padding: 15px 22px;
+            justify-content: space-between;
+        }
+
+        .chat-header .header-info {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-direction: row;
+        }
+
+        .header-info .chat-logo {
+            height: 35px;
+            width: 35px;
+            padding: 6px;
+            fill: #5350C4;
+            flex-shrink: 0;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .header-info .logo-text {
+            color: #fff;
+            font-size: 1.31rem;
+            font-weight: 600;
+        }
+
+        .chat-header #close-chatbot {
+            border: none;
+            color: #fff;
+            height: 40px;
+            width: 40px;
+            font-size: 1.9rem;
+            margin-right: -10px;
+            padding-top: 2px;
+            cursor: pointer;
+            border-radius: 50%;
+            background: none;
+        }
+
+        .chat-header #close-chatbot:hover {
+            background: #3d39ac;
+        }
+
+        /* Corps du chat */
+        .chat-body {
+            flex-grow: 1;
+            /* Permet au contenu de prendre tout l'espace disponible */
+            display: flex;
+            flex-direction: column;
+            padding: 25px 22px;
+            gap: 15px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #ccccf5 transparent;
+        }
+
+        /* Messages du bot et de l'utilisateur */
+        .chat-body .message {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-body .bot-message .bot-avatar {
+            height: 35px;
+            width: 35px;
+            padding: 6px;
+            fill: #fff;
+            flex-shrink: 0;
+            align-self: flex-end;
+            margin-bottom: 2px;
+            background: #5350C4;
+            border-radius: 50%;
+        }
+
+        .chat-body .message .message-text {
+            background: #f2f2ff;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            max-width: 75%;
+        }
+
+        .chat-body .bot-message .message-text {
+            background: #f2f2ff;
+            border-radius: 13px 13px 13px 3px;
+        }
+
+        .chat-body .user-message {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .chat-body .user-message .message-text {
+            color: #fff;
+            background: #5350C4;
+            border-radius: 13px 13px 3px 13px;
+        }
+
+        .chat-body .user-message .attachment {
+            width: 50%;
+            margin-top: -7px;
+            border-radius: 13px 3px 13px 13px;
+        }
+
+        /* Animation de réflexion */
+        .chat-body .bot-message .thinking-indicator {
+            display: flex;
+            gap: 4px;
+            padding-block: 15px;
+        }
+
+        .chat-body .bot-message .thinking-indicator .dot {
+            height: 7px;
+            width: 7px;
+            border-radius: 50%;
+            background: #6f6bc2;
+            opacity: 0.7;
+            animation: dotPulse 1.8s ease-in-out infinite;
+        }
+
+        .chat-body .bot-message .thinking-indicator .dot:nth-child(1) {
+            /* bqckground: red; */
+            animation-delay: 0.2s;
+        }
+
+        .chat-body .bot-message .thinking-indicator .dot:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .chat-body .bot-message .thinking-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            44% {
+                transform: translateY(0);
+            }
+
+            28% {
+                opacity: 0.4;
+                transform: translateY(-4px);
+            }
+
+            44% {
+                opacity: 0.2;
+            }
+        }
+
+        /* Pied de page du chat */
+        .chat-footer {
+            width: 100%;
+            padding: 15px 22px 20px;
+            background: #fff;
+            border-top: 1px solid #CCCCE5;
+        }
+
+        .chat-footer .chat-form {
+            display: flex;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 32px;
+            outline: 1px solid #CCCCE5;
+        }
+
+        .chat-footer .chat-form:focus-within {
+            outline: 2px solid #5350C4;
+        }
+
+        .chat-form .message-input {
+            border: none;
+            outline: none;
+            height: 47px;
+            width: 100%;
+            resize: none;
+            font-size: 0.95rem;
+            padding: 14px 0 13px 18px;
+            border-radius: inherit;
+        }
+
+        .chat-form .chat-controls {
+            display: flex;
+            height: 47px;
+            gap: 3px;
+            align-items: center;
+            align-self: flex-end;
+            padding-right: 6px;
+        }
+
+        .chat-form .chat-controls button {
+            height: 35px;
+            width: 35px;
+            border: none;
+            font-size: 1.15rem;
+            cursor: pointer;
+            color: #706db0;
+            background: none;
+            transition: 0.2s ease;
+            border-radius: 50%;
+        }
+
+        .chat-form .chat-controls #send-message {
+            color: #fff;
+            display: none;
+            background: #5350C4;
+        }
+
+        .chat-form .message-input:valid~.chat-controls #send-message {
+            display: block;
+        }
+
+        .chat-form .chat-controls #send-message:hover {
+            background: #3d39ac;
+        }
+
+        .chat-form .chat-controls button:hover {
+            background: #f1f1ff;
+        }
+
+        .chat-form .file-upload-wrapper {
+            height: 35px;
+            width: 35px;
+            position: relative;
+        }
+
+        .chat-form .file-upload-wrapper :where(img, button) {
+            position: absolute;
+        }
+
+        .chat-form .file-upload-wrapper img {
+            position: absolute;
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .chat-form .file-upload-wrapper #file-cancel {
+            color: #ff0000;
+            background: #fff;
+        }
+
+        .chat-form .file-upload-wrapper :where(img, #file-cancel),
+        .chat-form .file-upload-wrapper.file-uploaded #file-upload {
+            display: none;
+        }
+
+        .chat-form .file-upload-wrapper.file-uploaded img,
+        .chat-form .file-upload-wrapper.file-uploaded:hover #file-cancel {
+            display: block;
+        }
+
+        .chat-form .file-upload-wrapper1 {
+            height: 35px;
+            width: 35px;
+            position: relative;
+        }
+
+        .chat-form .file-upload-wrapper1 :where(img, button) {
+            position: absolute;
+        }
+
+        .chat-form .file-upload-wrapper1 img {
+            position: absolute;
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .chat-form .file-upload-wrapper1 #file-cancel1 {
+            color: #ff0000;
+            background: #fff;
+        }
+
+        .chat-form .file-upload-wrapper1 :where(img, #file-cancel1),
+        .chat-form .file-upload-wrapper1.file-uploaded #file-upload1 {
+            display: none;
+        }
+
+        .chat-form .file-upload-wrapper1.file-uploaded img,
+        .chat-form .file-upload-wrapper1.file-uploaded:hover #file-cancel1 {
+            display: block;
+        }
+
+        /* Conteneur de l'alerte */
+        .alert-container {
+            display: none;
+            /* Cachée par défaut */
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        /* Style de l'alerte */
+        .alert {
+            background-color: red;
+            /* Rouge */
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            max-width: 300px;
+            min-width: 200px;
+        }
+
+        /* Message de l'alerte */
+        .alert-message {
+            flex-grow: 1;
+            /* Le message occupe toute la largeur disponible */
+            padding-right: 10px;
+            /* Pour espacer le message du bouton */
+        }
+
+        /* Bouton de fermeture de l'alerte */
+        .alert-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .alert-close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        em-emoji-picker {
+            position: absolute;
+            left: 50%;
+            top: -337px;
+            width: 100%;
+            max-width: 350px;
+            max-height: 330px;
+            transform: translateX(-50%);
+            visibility: hidden;
+        }
+
+        body.show-emoji-picker em-emoji-picker {
+            visibility: visible;
+        }
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="chatbot-toggler">
+        <span class="material-symbols-rounded">mode_comment</span>
+        <span class="material-symbols-rounded">close</span>
+
+    </button>
+    <div class="chatbot-popup">
+        <!-- ChatBot header -->
+        <div class="chat-header">
+            <div class="header-info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="chat-logo" width="50" height="50"
+                    viewBox="0 0 1024 1024">
+                    <path
+                        d="M738.3 287.6H285.7c-59 0-106.8 47.8-106.8 106.8v303.1c0 59 47.8 106.8 106.8 106.8h81.5v111.1c0 .7.8 1.1 1.4.7l166.9-110.6 41.8-.8h117.4l43.6-.4c59 0 106.8-47.8 106.8-106.8V394.5c0-59-47.8-106.9-106.8-106.9zM351.7 448.2c0-29.5 23.9-53.5 53.5-53.5s53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5-53.5-23.9-53.5-53.5zm157.9 267.1c-67.8 0-123.8-47.5-132.3-109h264.6c-8.6 61.5-64.5 109-132.3 109zm110-213.7c-29.5 0-53.5-23.9-53.5-53.5s23.9-53.5 53.5-53.5 53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5zM867.2 644.5V453.1h26.5c19.4 0 35.1 15.7 35.1 35.1v121.1c0 19.4-15.7 35.1-35.1 35.1h-26.5zM95.2 609.4V488.2c0-19.4 15.7-35.1 35.1-35.1h26.5v191.3h-26.5c-19.4 0-35.1-15.7-35.1-35.1zM561.5 149.6c0 23.4-15.6 43.3-36.9 49.7v44.9h-30v-44.9c-21.4-6.5-36.9-26.3-36.9-49.7 0-28.6 23.3-51.9 51.9-51.9s51.9 23.3 51.9 51.9z">
+                    </path>
+                </svg>
+                <h2 class="logo-text">ChatBot</h2>
+            </div>
+            <button id="close-chatbot" class="material-symbols-rounded">keyboard_arrow_down</button>
+        </div>
+        <!-- ChatBot body -->
+        <div class="chat-body">
+            <div class="message bot-message">
+                <svg xmlns="http://www.w3.org/2000/svg" class="bot-avatar" width="50" height="50"
+                    viewBox="0 0 1024 1024">
+                    <path
+                        d="M738.3 287.6H285.7c-59 0-106.8 47.8-106.8 106.8v303.1c0 59 47.8 106.8 106.8 106.8h81.5v111.1c0 .7.8 1.1 1.4.7l166.9-110.6 41.8-.8h117.4l43.6-.4c59 0 106.8-47.8 106.8-106.8V394.5c0-59-47.8-106.9-106.8-106.9zM351.7 448.2c0-29.5 23.9-53.5 53.5-53.5s53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5-53.5-23.9-53.5-53.5zm157.9 267.1c-67.8 0-123.8-47.5-132.3-109h264.6c-8.6 61.5-64.5 109-132.3 109zm110-213.7c-29.5 0-53.5-23.9-53.5-53.5s23.9-53.5 53.5-53.5 53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5zM867.2 644.5V453.1h26.5c19.4 0 35.1 15.7 35.1 35.1v121.1c0 19.4-15.7 35.1-35.1 35.1h-26.5zM95.2 609.4V488.2c0-19.4 15.7-35.1 35.1-35.1h26.5v191.3h-26.5c-19.4 0-35.1-15.7-35.1-35.1zM561.5 149.6c0 23.4-15.6 43.3-36.9 49.7v44.9h-30v-44.9c-21.4-6.5-36.9-26.3-36.9-49.7 0-28.6 23.3-51.9 51.9-51.9s51.9 23.3 51.9 51.9z">
+                    </path>
+                </svg>
+                <div class="message-text">
+                    HeyThere <br>
+                    How can I help u today ?
+                </div>
+            </div>
+        </div>
+        <!-- ChatBot footer -->
+        <div class="chat-footer">
+            <form action="#" class="chat-form">
+                <textarea placeholder="Message..." class="message-input" required></textarea>
+                <div class="chat-controls">
+                    <button class="material-symbols-rounded" id="emoji-picker" type="button">
+                        sentiment_satisfied
+                    </button>
+                    <div class="file-upload-wrapper">
+                        <input type="file" accept="images/*" id="file-input" hidden>
+                        <img src="#">
+                        <button class="material-symbols-rounded" type="button" id="file-upload">
+                            attach_file
+                        </button>
+                        <button class="material-symbols-rounded" type="button" id="file-cancel">
+                            cancel
+                        </button>
+                    </div>
+                    <div class="file-upload-wrapper1">
+                        <input type="file" accept="images/*" id="file-input1" hidden>
+                        <img src="#">
+                        <button class="material-symbols-rounded" type="button" id="file-upload1">
+                            attach_file
+                        </button>
+                        <button class="material-symbols-rounded" type="button" id="file-cancel1">
+                            cancel
+                        </button>
+                    </div>
+                    <button class="material-symbols-rounded" type="submit" id="send-message">
+                        arrow_upward
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <!-- Alerte - Message d'erreur -->
+    <div class="alert-container" id="alert-container">
+        <div class="alert">
+            <span class="alert-message">Vous ne pouvez importer que 2 images maximum.</span>
+            <button class="alert-close-btn" onclick="closeAlert()">X</button>
+        </div>
+    </div>
+    <!-- Linking Emoji Mart script for emoji picker -->
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
+
+    <script>
+        // Sélection des éléments du DOM
+        const chatBody = document.querySelector(".chat-body");
+        const messageInput = document.querySelector(".message-input");
+        const sendMessageButton = document.querySelector("#send-message");
+        const fileInputs = [document.querySelector("#file-input"), document.querySelector("#file-input1")];
+        const fileWrappers = [document.querySelector(".file-upload-wrapper"), document.querySelector(".file-upload-wrapper1")];
+        const fileCancelButtons = [document.querySelector("#file-cancel"), document.querySelector("#file-cancel1")];
+        const fileUploadButtons = [document.querySelector("#file-upload"), document.querySelector("#file-upload1")];
+        const chatbottoggler = document.querySelector("#chatbot-toggler");
+
+        const userData = {
+            message: null,
+            files: [{ data: null, mime_type: null }, { data: null, mime_type: null }]
+        };
+
+        // Fonction pour afficher une alerte
+        const showAlert = (message) => {
+            const alertContainer = document.getElementById("alert-container");
+            alertContainer.querySelector(".alert-message").textContent = message;
+            alertContainer.style.display = "block";
+        };
+
+        // Fonction pour fermer l'alerte
+        const closeAlert = () => document.getElementById("alert-container").style.display = "none";
+
+        // Fonction pour créer un élément de message
+        const createMessageElement = (content, ...classes) => {
+            const div = document.createElement("div");
+            div.classList.add("message", ...classes);
+            div.innerHTML = content;
+            return div;
+        };
+
+        // Générer la réponse du bot
+        const generateBotResponse = async (incomingMessageDiv) => {
+            const messageElement = incomingMessageDiv.querySelector(".message-text");
+            const userMessage = userData.message.toLowerCase();
+        
+            const greetings = ["hi", "hello", "hey", "good morning", "good evening"];
+            const bye = ["stop", "bye", "good bye"];
+            const thanksKeywords = ["merci", "thanks", "thank you", "merci beaucoup", "thanks a lot", "thank"];
+            const okKeywords = ["ok", "d'accord", "c'est clair", "bien", "tout est bon", "ok d'accord"];
+        
+            // Cas où deux images sont envoyées pour comparaison de visages
+            if (userData.files[0].data && userData.files[1].data) {
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/compare", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            image1: userData.files[0].data,
+                            image2: userData.files[1].data,
+                        })
+                    });
+        
+                    const result = await response.json();
+                    let botReply = result.same_person ? `✅ Same person detected.` : `❌ Different people.`;
+                    botReply += ` (Distance : ${result.distance.toFixed(4)})`;
+                    messageElement.innerHTML = botReply;
+        
+                } catch (error) {
+                    messageElement.innerHTML = "❌ Error while comparing.";
+                }
+            }
+            else if (userData.files[0].data) {
+                if (userMessage.includes("text")) {
+                    // Cas où une seule image est envoyée pour la reconnaissance de texte
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/recognize_text", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                image1: userData.files[0].data
+                            })
+                        });
+        
+                        const result = await response.json();
+                        let botReply = `📝 Texte détecté: ${result.recognized_text}`;
+                        messageElement.innerHTML = botReply;
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error recognizing text.";
+                    }
+                } else if (userMessage.includes("equation") || userMessage.includes("résoudre")) {
+                    // Cas où une seule image est envoyée et l'utilisateur veut résoudre une équation
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/solve_equation", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                image1: userData.files[0].data
+                            })
+                        });
+        
+                        const result = await response.json();
+                        if (result.equation) {
+                            let botReply = `🔢 Equation détectée et résolue : ${result.equation}`;
+                            botReply += `<br>Solutions : ${result.solutions.join(", ")}`;
+                            messageElement.innerHTML = botReply;
+                        } else {
+                            messageElement.innerHTML = "❌ Aucune équation détectée.";
+                        }
+                        
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error solving equation.";
+                    }
+                
+                } else if (userMessage.includes("age") || userMessage.includes("sexe"))
+                {
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/analyze", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ image1: userData.files[0].data })
+                        });
+        
+                        const result = await response.json();
+                        let botReply = `👤 Sexe : ${result.gender} <br> 🎂 Âge estimé : ${result.age}`;
+                        messageElement.innerHTML = botReply;
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Erreur lors de l'analyse du visage.";
+                    }
+                }
+                else {
+                    // Cas où une seule image est envoyée pour reconnaissance d'objet
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/compare", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ image1: userData.files[0].data })
+                        });
+        
+                        const result = await response.json();
+                        messageElement.innerHTML = `🔍 Object detected: ${result.object_name}`;
+        
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error recognizing object.";
+                    }
+                }
+            }
+            else if (userData.files[1].data) {
+                if (userMessage.includes("text")) {
+                    // Cas où une seule image est envoyée pour la reconnaissance de texte
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/recognize_text", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                image1: userData.files[1].data
+                            })
+                        });
+        
+                        const result = await response.json();
+                        let botReply = `📝 Texte détecté: ${result.recognized_text}`;
+                        messageElement.innerHTML = botReply;
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error recognizing text.";
+                    }
+                } else if (userMessage.includes("equation") || userMessage.includes("résoudre")) {
+                    // Cas où une seule image est envoyée et l'utilisateur veut résoudre une équation
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/solve_equation", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                image1: userData.files[1].data
+                            })
+                        });
+        
+                        const result = await response.json();
+                        if (result.equation) {
+                            let botReply = `🔢 Equation détectée et résolue : ${result.equation}`;
+                            botReply += `<br>Solutions : ${result.solutions.join(", ")}`;
+                            messageElement.innerHTML = botReply;
+                        } else {
+                            messageElement.innerHTML = "❌ Aucune équation détectée.";
+                        }
+                        
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error solving equation.";
+                    }
+                } else if (userMessage.includes("age") || userMessage.includes("sexe"))
+                {
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/analyze", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ image1: userData.files[1].data })
+                        });
+        
+                        const result = await response.json();
+                        let botReply = `👤 Sexe : ${result.gender} <br> 🎂 Âge estimé : ${result.age}`;
+                        messageElement.innerHTML = botReply;
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Erreur lors de l'analyse du visage.";
+                    }
+                }
+                else {
+                    // Cas où une seule image est envoyée pour reconnaissance d'objet
+                    try {
+                        const response = await fetch("http://127.0.0.1:5000/compare", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                image1: userData.files[1].data
+                            })
+                        });
+        
+                        const result = await response.json();
+                        let botReply = `🔍 Object detected: ${result.object_name}`;
+                        messageElement.innerHTML = botReply;
+                    } catch (error) {
+                        messageElement.innerHTML = "❌ Error recognizing object.";
+                    }
+                }
+            }
+            // Si aucun fichier image n'est envoyé, on vérifie les messages texte
+            else {
+                let botReply = "I'm still learning! How can I assist you? 😊";
+        
+                if (greetings.some(greet => userMessage.includes(greet))) {
+                    botReply = "Hello! 🤖 I am a chat bot developped by Team 🦋 . How can I assist you today?";
+                } else if (bye.some(byebye => userMessage.includes(byebye))) {
+                    botReply = "Good bye Ayoub Jemaa,Hend Sassi,Farah Rouetbi,Houssem Ben Ghoudhben! See you later.";
+                    messageElement.style.color = "#ff0000";
+                } else if (thanksKeywords.some(thank => userMessage.includes(thank))) {
+                    botReply = "You're welcome! 😊 Feel free to ask if you need help!";
+                } else if (okKeywords.some(keyword => userMessage.includes(keyword))) {
+                    botReply = "Glad it's clear! 😊 Let me know if you need anything else!";
+                }
+        
+                messageElement.innerHTML = botReply;
+            }
+        
+            incomingMessageDiv.classList.remove("thinking");
+            chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+            userData.files = [{}, {}];
+        };
+        
+        // Gérer l'envoi des messages
+        const handleOutgoingMessage = (e) => {
+            e.preventDefault();
+            userData.message = messageInput.value.trim();
+
+            if (!userData.message && !userData.files[0].data && !userData.files[1].data) return;
+
+            messageInput.value = "";
+            fileWrappers.forEach(wrapper => wrapper.classList.remove("file-uploaded"));
+
+            const messageContent = `
+        <div class="message-text">${userData.message}</div>
+        ${userData.files.map(file => file.data ? `<img src="data:${file.mime_type};base64,${file.data}" class="attachment"/>` : "").join("")}
+    `;
+
+            const userMessageDiv = createMessageElement(messageContent, "user-message");
+            chatBody.appendChild(userMessageDiv);
+            chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+
+            const botMessageDiv = createMessageElement(`
+        <svg xmlns="http://www.w3.org/2000/svg" class="bot-avatar" width="50" height="50" viewBox="0 0 1024 1024">
+            <path d="M738.3 287.6H285.7c-59 0-106.8 47.8-106.8 106.8v303.1c0 59 47.8 106.8 106.8 106.8h81.5v111.1c0 .7.8 1.1 1.4.7l166.9-110.6 41.8-.8h117.4l43.6-.4c59 0 106.8-47.8 106.8-106.8V394.5c0-59-47.8-106.9-106.8-106.9zM351.7 448.2c0-29.5 23.9-53.5 53.5-53.5s53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5-53.5-23.9-53.5-53.5zm157.9 267.1c-67.8 0-123.8-47.5-132.3-109h264.6c-8.6 61.5-64.5 109-132.3 109zm110-213.7c-29.5 0-53.5-23.9-53.5-53.5s23.9-53.5 53.5-53.5 53.5 23.9 53.5 53.5-23.9 53.5-53.5 53.5z"></path>
+        </svg>
+        <div class="message-text">
+            <div class="thinking-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>`, "bot-message", "thinking"
+            );
+
+            chatBody.appendChild(botMessageDiv);
+            chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+
+            setTimeout(() => generateBotResponse(botMessageDiv), 600);
+        };
+
+        // Ajout des événements
+        messageInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleOutgoingMessage(e);
+        });
+        sendMessageButton.addEventListener("click", handleOutgoingMessage);
+
+        // Gestion des fichiers
+        fileInputs.forEach((input, index) => {
+            input.addEventListener("change", () => {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    fileWrappers[index].querySelector("img").src = e.target.result;
+                    fileWrappers[index].classList.add("file-uploaded");
+                    userData.files[index] = { data: e.target.result.split(",")[1], mime_type: file.type };
+                    input.value = "";
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Annuler l'upload
+        fileCancelButtons.forEach((button, index) => {
+            button.addEventListener("click", () => {
+                userData.files[index] = {};
+                fileWrappers[index].classList.remove("file-uploaded");
+            });
+        });
+
+        // Déclencher le sélecteur de fichier
+        fileUploadButtons.forEach((button, index) => {
+            button.addEventListener("click", () => fileInputs[index].click());
+        });
+        //initialiser emoji picker and handle emoji selection
+        const picker = new EmojiMart.Picker({
+            theme: "light",
+            skinTonePosition: "none",
+            previewPosition: "none",
+            onEmojiSelect: (emoji) => {
+                const { selectionStart: start, selectionEnd: end } = messageInput;
+                messageInput.setRangeText(emoji.native, start, end, "end");
+                messageInput.focus();
+
+            },
+            onClickOutside: (e) => {
+                if (e.target.id === "emoji-picker") {
+                    document.body.classList.toggle("show-emoji-picker");
+                } else {
+                    document.body.classList.remove("show-emoji-picker");
+
+                }
+            }
+
+        })
+        document.querySelector(".chat-form").appendChild(picker)
+        chatbottoggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
+
+    </script>
+</body>
+
+</html>
