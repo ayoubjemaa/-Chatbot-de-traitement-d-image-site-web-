@@ -155,4 +155,10 @@ python app.py
 ```
 http://localhost:5000
 ```
+---
+## 📜 Licence
+MIT © Ayoub Jemaa
+License
+
+
 
